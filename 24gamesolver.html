@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24點遊戲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自訂字體與動畫 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .formula-font {
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* 隱藏預設的數字上下箭頭 */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* 自訂捲軸樣式 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* 淡入動畫 */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+
+    <!-- 主卡片容器 -->
+    <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl p-6 sm:p-10 max-w-lg w-full border border-white/50">
+        
+        <!-- 標題區 -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 text-white shadow-lg mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 tracking-tight">24點遊戲</h1>
+            <p class="text-gray-500 mt-2 text-sm sm:text-base">請輸入四個數字 (0-9)，我將為您找出所有能算出 24 的組合！</p>
+        </div>
+
+        <!-- 數字輸入區 -->
+        <div class="flex gap-3 sm:gap-4 justify-center mb-8">
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="num-input w-16 h-16 sm:w-20 sm:h-20 text-center text-3xl sm:text-4xl font-bold text-indigo-700 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all shadow-inner" placeholder="·">
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="num-input w-16 h-16 sm:w-20 sm:h-20 text-center text-3xl sm:text-4xl font-bold text-indigo-700 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all shadow-inner" placeholder="·">
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="num-input w-16 h-16 sm:w-20 sm:h-20 text-center text-3xl sm:text-4xl font-bold text-indigo-700 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all shadow-inner" placeholder="·">
+            <input type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" class="num-input w-16 h-16 sm:w-20 sm:h-20 text-center text-3xl sm:text-4xl font-bold text-indigo-700 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all shadow-inner" placeholder="·">
+        </div>
+
+        <!-- 按鈕區 -->
+        <div class="flex gap-4">
+            <button id="clearBtn" class="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors duration-200">
+                清除
+            </button>
+            <button id="calcBtn" class="flex-[2] py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transform transition-all duration-200 active:scale-95">
+                計算解答
+            </button>
+        </div>
+
+        <!-- 顯示結果區塊 -->
+        <div id="resultContainer" class="mt-8 hidden">
+            <div class="flex justify-between items-end mb-3 px-1">
+                <h3 class="text-lg font-bold text-gray-800">計算結果</h3>
+                <span id="resultCount" class="text-sm font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md"></span>
+            </div>
+            
+            <div id="resultsList" class="max-h-[250px] overflow-y-auto custom-scrollbar bg-gray-50 rounded-xl border border-gray-100 p-2">
+                <!-- 結果列表將透過 JavaScript 產生於此 -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('.num-input');
+            const calcBtn = document.getElementById('calcBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultsList = document.getElementById('resultsList');
+            const resultCount = document.getElementById('resultCount');
+
+            // --- UI 互動邏輯 ---
+
+            // 自動跳轉焦點邏輯
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    // 只允許輸入一個數字 (0-9)
+                    let val = e.target.value.replace(/[^0-9]/g, '');
+                    if (val.length > 1) val = val.slice(val.length - 1);
+                    e.target.value = val;
+
+                    // 輸入後自動跳到下一個輸入框
+                    if (val !== '' && index < 3) {
+                        inputs[index + 1].focus();
+                    }
+                });
+
+                // 按下 Backspace 時，若目前為空則退回上一個輸入框
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                        inputs[index - 1].focus();
+                        // 輕微延遲以避免觸發上一個輸入框的刪除
+                        setTimeout(() => inputs[index - 1].value = '', 10); 
+                    }
+                });
+
+                // 獲得焦點時全選文字，方便修改
+                input.addEventListener('focus', (e) => {
+                    e.target.select();
+                });
+            });
+
+            // 清除按鈕邏輯
+            clearBtn.addEventListener('click', () => {
+                inputs.forEach(input => input.value = '');
+                resultContainer.classList.add('hidden');
+                inputs[0].focus();
+            });
+
+            // --- 24點 核心演算法 ---
+
+            const EPSILON = 0.0001; // 用於處理浮點數誤差
+
+            // 基礎四則運算函數
+            function applyOp(a, b, op) {
+                if (op === '+') return a + b;
+                if (op === '-') return a - b;
+                if (op === '*') return a * b;
+                if (op === '/') {
+                    // 避免除以零產生不可預期的結果
+                    if (Math.abs(b) < EPSILON) return NaN;
+                    return a / b;
+                }
+                return NaN;
+            }
+
+            // 取得陣列的所有排列組合
+            function getPermutations(arr) {
+                if (arr.length === 0) return [[]];
+                const result = [];
+                for (let i = 0; i < arr.length; i++) {
+                    const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+                    const perms = getPermutations(rest);
+                    for (let p of perms) {
+                        result.push([arr[i], ...p]);
+                    }
+                }
+                return result;
+            }
+
+            // 格式化顯示符號
+            function formatDisplay(str) {
+                return str.replace(/\*/g, '×').replace(/\//g, '÷');
+            }
+
+            // 主要運算函式：傳入包含4個數字的陣列
+            function solve24(nums) {
+                const resultsSet = new Set();
+                const ops = ['+', '-', '*', '/'];
+                const numPerms = getPermutations(nums);
+
+                for (let num of numPerms) {
+                    for (let op1 of ops) {
+                        for (let op2 of ops) {
+                            for (let op3 of ops) {
+                                const a = num[0], b = num[1], c = num[2], d = num[3];
+
+                                // 總共有5種不同的括號結構 (二元樹形狀)
+                                
+                                // Shape 1: ((A op1 B) op2 C) op3 D
+                                let val1 = applyOp(applyOp(applyOp(a, b, op1), c, op2), d, op3);
+                                if (Math.abs(val1 - 24) < EPSILON) {
+                                    resultsSet.add(`((${a} ${op1} ${b}) ${op2} ${c}) ${op3} ${d}`);
+                                }
+
+                                // Shape 2: (A op1 (B op2 C)) op3 D
+                                let val2 = applyOp(applyOp(a, applyOp(b, c, op2), op1), d, op3);
+                                if (Math.abs(val2 - 24) < EPSILON) {
+                                    resultsSet.add(`(${a} ${op1} (${b} ${op2} ${c})) ${op3} ${d}`);
+                                }
+
+                                // Shape 3: A op1 ((B op2 C) op3 D)
+                                let val3 = applyOp(a, applyOp(applyOp(b, c, op2), d, op3), op1);
+                                if (Math.abs(val3 - 24) < EPSILON) {
+                                    resultsSet.add(`${a} ${op1} ((${b} ${op2} ${c}) ${op3} ${d})`);
+                                }
+
+                                // Shape 4: A op1 (B op2 (C op3 D))
+                                let val4 = applyOp(a, applyOp(b, applyOp(c, d, op3), op2), op1);
+                                if (Math.abs(val4 - 24) < EPSILON) {
+                                    resultsSet.add(`${a} ${op1} (${b} ${op2} (${c} ${op3} ${d}))`);
+                                }
+
+                                // Shape 5: (A op1 B) op2 (C op3 D)
+                                let val5 = applyOp(applyOp(a, b, op1), applyOp(c, d, op3), op2);
+                                if (Math.abs(val5 - 24) < EPSILON) {
+                                    resultsSet.add(`(${a} ${op1} ${b}) ${op2} (${c} ${op3} ${d})`);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return Array.from(resultsSet);
+            }
+
+            // 計算按鈕事件
+            calcBtn.addEventListener('click', () => {
+                // 1. 取得輸入值並驗證
+                const vals = Array.from(inputs).map(input => input.value);
+                if (vals.includes('')) {
+                    alert('請填滿所有四個數字！');
+                    return;
+                }
+
+                const nums = vals.map(v => parseInt(v, 10));
+                
+                // 2. 顯示計算狀態並重設UI
+                calcBtn.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    計算中...
+                `;
+                calcBtn.disabled = true;
+                resultsList.innerHTML = '';
+                resultContainer.classList.add('hidden');
+
+                // 3. 延遲執行以渲染讀取動畫
+                setTimeout(() => {
+                    const rawSolutions = solve24(nums);
+                    
+                    // 為了介面更友善，去除最外層不必要的括號，並轉換乘除符號
+                    const cleanSolutions = rawSolutions.map(sol => {
+                        let clean = formatDisplay(sol);
+                        // 簡單移除包裹著整個表達式的括號 (若有的話)
+                        if (clean.startsWith('((') && clean.endsWith('))') && (clean.match(/\(/g) || []).length === 2) {
+                             clean = clean.slice(1, -1);
+                        }
+                        return clean + " = 24";
+                    });
+
+                    // 將結果顯示到畫面上
+                    if (cleanSolutions.length > 0) {
+                        resultCount.textContent = `共 ${cleanSolutions.length} 種解法`;
+                        cleanSolutions.forEach((sol, i) => {
+                            const delay = Math.min(i * 0.05, 0.5); // 階梯式動畫延遲
+                            resultsList.innerHTML += `
+                                <div class="fade-in bg-white rounded-lg px-4 py-3 mb-2 flex items-center shadow-sm text-gray-700 border border-gray-100 hover:bg-indigo-50 transition-colors" style="animation-delay: ${delay}s">
+                                    <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs flex items-center justify-center font-bold mr-3 flex-shrink-0">${i + 1}</span>
+                                    <span class="formula-font text-lg font-medium tracking-widest text-indigo-900">${sol}</span>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        resultCount.textContent = "無解";
+                        resultsList.innerHTML = `
+                            <div class="fade-in bg-red-50 text-red-600 rounded-lg p-5 text-center flex flex-col items-center border border-red-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="font-bold text-lg">此組合無法算出 24</span>
+                                <span class="text-sm mt-1 opacity-80">請嘗試輸入其他的數字組合！</span>
+                            </div>
+                        `;
+                    }
+
+                    // 復原按鈕狀態並顯示結果
+                    calcBtn.innerHTML = '計算解答';
+                    calcBtn.disabled = false;
+                    resultContainer.classList.remove('hidden');
+                    
+                }, 100); // 100ms 延遲讓畫面有反應
+            });
+
+            // 支援 Enter 鍵快捷計算
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    calcBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
